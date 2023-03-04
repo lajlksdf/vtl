@@ -7,7 +7,7 @@ from config import PVT2Config
 from dataset.BaseDataset import TrainCache, load_cache, get_dataloader, TrainItem
 from dataset.CelebDF_Video import CelebDFVideoDataset
 from dataset.DFD_Video import DFDVideoDataset
-from dataset.DFTL import DFTLDataset
+from dataset.DFSTL import DFSTLDataset
 from dataset.FFTL import FFTLDataset
 from dataset.inpainting_dataset import InpaintingDataset
 from dataset.splicingtl import VSTLDataset
@@ -25,8 +25,8 @@ choices = {  # (number of original videos, Dataset: read frames or video)
     'DFD': (363, DFDVideoDataset),
     'Celeb-DF': (590, CelebDFVideoDataset),
     'VSTL': (30, VSTLDataset),
-    'DFTL': (133, DFTLDataset),
-    'Davis2016-TL': (50, InpaintingDataset),
+    'DFSTL': (133, DFSTLDataset),
+    'inpainting': (50, InpaintingDataset),
 }
 
 
@@ -70,7 +70,7 @@ def train_step(genesis: Genesis, item: TrainItem, idx, epoch, device):
 def test_step(genesis: Genesis, idx, epoch, test_itr, device):
     if idx % 100 == 0:
         genesis.eval()
-        _, (label, _, sources, fakes, masks) = test_itr.__next__()
+        _, (label, _, _, fakes, _) = test_itr.__next__()
         # HashNet
         fakes = cb2b(fakes, device)
         h = genesis.h(fakes)
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     print('args:{}'.format(args))
     PVT2Config.HASH_BITS = args.hash_bits
     PVT2Config.NUM_CLASSES, Dataset = choices[args.type]
-    genesis = Genesis(args.pretrained, args.local_rank, [args.local_rank], data_type=args.type)
+    genesis = Genesis(args.pretrained, args.local_rank, [args.local_rank], dataset=args.type)
 
     dataloader = get_dataloader(set_path=args.path, Dataset=Dataset)
     test_loader = get_dataloader(mode=PVT2Config.TEST, set_path=args.path, Dataset=Dataset)

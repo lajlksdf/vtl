@@ -7,7 +7,7 @@ import torch.nn as nn
 from config import PVT2Config
 from dataset.BaseDataset import TrainCache, load_cache, get_dataloader, TrainItem
 from dataset.DFD_Video import DFDVideoDataset
-from dataset.DFTL import DFTLDataset
+from dataset.DFSTL import DFSTLDataset
 from dataset.FFTL import FFTLDataset
 from dataset.inpainting_dataset import InpaintingDataset
 from dataset.splicingtl import VSTLDataset
@@ -26,8 +26,8 @@ choices = {  # (number of original videos, Dataset: read frames or video)
     'FF++': (1000, FFTLDataset),
     'DFD': (363, DFDVideoDataset),
     'VSTL': (30, VSTLDataset),
-    'DFTL': (133, DFTLDataset),
-    'Davis2016-TL': (50, InpaintingDataset),
+    'DFTL': (133, DFSTLDataset),
+    'inpainting': (50, InpaintingDataset),
 }
 
 
@@ -86,6 +86,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--path', type=str, default=r'/home/adminis/ppf/dataset/inpainting')
 parser.add_argument('--local_rank', type=int, default=0)
 parser.add_argument('--type', type=str, default='Davis2016-TL')
+parser.add_argument('--data_type', type=str, default='Davis2016-TL')
 parser.add_argument('--pretrained', type=str, default='/home/adminis/ppf/vrfx/models/davis')
 parser.add_argument('--train_h', type=bool, default=False)
 if __name__ == '__main__':
@@ -93,8 +94,9 @@ if __name__ == '__main__':
     data_type = args.type
     print('args:{}'.format(args))
     PVT2Config.NUM_CLASSES, Dataset = choices[args.type]
-    genesis = Genesis(args.pretrained, args.local_rank, [args.local_rank], data_type=args.type, train_h=False)
+    genesis = Genesis(args.pretrained, args.local_rank, [args.local_rank], data_type=args.data_type, train_h=False)
 
-    dataloader = get_dataloader(set_path=args.path, Dataset=Dataset, train_h=args.train_h)
-    test_loader = get_dataloader(mode=PVT2Config.TEST, set_path=args.path, Dataset=Dataset, train_h=args.train_h)
+    dataloader = get_dataloader(set_path=args.path, Dataset=Dataset, train_h=args.train_h, data_type=1)
+    test_loader = get_dataloader(mode=PVT2Config.TEST, set_path=args.path, Dataset=Dataset, train_h=args.train_h,
+                                 data_type=1)
     train(genesis, dataloader, test_loader)

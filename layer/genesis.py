@@ -15,11 +15,11 @@ from util.logUtil import logger
 
 
 class Genesis:
-    def __init__(self, path, rank, device_ids, train_h=True, data_type=0):
+    def __init__(self, path, rank, device_ids, train_h=True, dataset=''):
         # base
         self.device = setup(rank)
         self.rank = rank
-        self.data_type = data_type
+        self.dataset = dataset
         self.hash_bits = PVT2Config.HASH_BITS
         self.device_ids = device_ids
         self.train_h = train_h

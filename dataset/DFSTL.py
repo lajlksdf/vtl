@@ -4,7 +4,7 @@ from config import PVT2Config
 from dataset.BaseDataset import BaseDataset, DataItem
 
 
-class DFTLDataset(BaseDataset):
+class DFSTLDataset(BaseDataset):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

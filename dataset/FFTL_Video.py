@@ -52,11 +52,3 @@ class FFVideoDataset(BaseVideoDataset):
                 start = data_item.end
                 self.data.append(data_item)
         self.length = start // PVT2Config.FRAMES_STEP
-
-
-def get_ff_dataloader(set_path, mode=PVT2Config.TRAIN,
-                      num_workers=min(os.cpu_count(), PVT2Config.BATCH_SIZE),
-                      batch_size=PVT2Config.BATCH_SIZE, test_op=-1, shuffle=True):
-    dataset = FFVideoDataset(set_path=set_path, mode=mode, test_op=test_op, type=1)
-    dataloader = tud.DataLoader(dataset, num_workers=num_workers, batch_size=batch_size, shuffle=shuffle)
-    return dataloader

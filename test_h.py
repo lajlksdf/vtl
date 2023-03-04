@@ -5,14 +5,14 @@ from collections import Counter
 
 import torch
 from PIL import Image
-from cv2 import cv2
+import cv2
 from torch import Tensor
 
 from config import PVT2Config
 from dataset.BaseDataset import get_dataloader
 from dataset.CelebDF_Video import CelebDFVideoDataset
 from dataset.DFD_Video import DFDVideoDataset
-from dataset.DFTL import DFTLDataset
+from dataset.DFSTL import DFSTLDataset
 from dataset.FFTL import FFTLDataset
 from dataset.inpainting_dataset import InpaintingDataset
 from dataset.splicingtl import VSTLDataset
@@ -34,8 +34,8 @@ choices = {
     'DFD': (363, DFDVideoDataset, 'src/c23/videos/'),
     'Celeb-DF': (590, CelebDFVideoDataset, 'src/'),
     'VSTL': (30, VSTLDataset, 'train/src/'),
-    'DFTL': (133, DFTLDataset, 'train/'),
-    'Davis2016-TL': (50, InpaintingDataset, 'train/src/'),
+    'DFSTL': (133, DFSTLDataset, 'train/'),
+    'inpainting': (50, InpaintingDataset, 'train/src/'),
 }
 
 
@@ -81,7 +81,7 @@ def test(datatype_, path, test_op, hash_path, h_model, cls):
     net_h.load_state_dict(torch.load(h_model, map_location=device))
     net_h = net_h.to(device)
     net_h.eval()
-    for idx, (label, fake_file, src, fakes, masks) in enumerate(dataloader):
+    for idx, (label, fake_file, _, fakes, masks) in enumerate(dataloader):
         fakes = helper.cb2b(fakes, device)
         acc = test_h(fakes, label, net_h, fake_file)
         step = int(100 * idx / total)
@@ -139,9 +139,9 @@ def merge_pic_trace(find_files: [], files: [], name):
 
 def find_files(path, l_):
     path_f = None
-    if type_ == 'DFTL':
+    if dataset_ == 'DFTL':
         path_f = os.path.join(path, src_path, l_, 'src')
-    elif type_ == 'Davis2016-TL' or type_ == 'VSTL' or type_ == 'FF++':
+    elif dataset_ == 'inpainting' or dataset_ == 'VSTL' or dataset_ == 'FF++':
         path_f = os.path.join(path, src_path, l_)
     if path_f:
         file = sorted(os.listdir(path_f))[0]
@@ -152,7 +152,7 @@ def find_files(path, l_):
 
 
 def read_video_cover(path, l_):
-    cover = f'tmp/{l_}_{type_}.jpg'
+    cover = f'tmp/{l_}_{dataset_}.jpg'
     if os.path.exists(cover):
         return cover
     path_f = os.path.join(path, src_path, l_) + '.mp4'
@@ -222,7 +222,7 @@ def robust_test():
         model_path = os.path.join(h_path, f'{hash_bits}_net_h.pth')
         for i in range(-1, 5):
             result_map.clear()
-            test(type_, path_, i, json_path, model_path, 'robust')
+            test(dataset_, path_, i, json_path, model_path, 'robust')
 
 
 def normal_test():
@@ -230,8 +230,10 @@ def normal_test():
         PVT2Config.FRAMES_STEP = PVT2Config.NUM_FRAMES * 5
         json_path = os.path.join(h_path, f'{hash_bits}_hash.json')
         model_path = os.path.join(h_path, f'{hash_bits}_net_h.pth')
+        FFTLDataset.test_listdir = [test_cls]
+        FFTLDataset.test_compresses = [test_compresses]
         result_map.clear()
-        test(type_, path_, -1, json_path, model_path, 'normal-' + type_)
+        test(dataset_, path_, -1, json_path, model_path, 'normal-' + dataset_)
 
 
 def cross_test():
@@ -245,23 +247,23 @@ def cross_test():
             for t_cls in t_listdir:
                 FFTLDataset.test_listdir = [t_cls]
                 result_map.clear()
-                test(type_, path_, -1, json_path, model_path, model_cls + '-' + t_cls)
+                test(dataset_, path_, -1, json_path, model_path, model_cls + '-' + t_cls)
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--path', type=str, default=r'/home/adminis/ppf/dataset/inpainting')
-parser.add_argument('--pretrained', type=str, default='/home/adminis/ppf/vrfx/models/davis')
+parser.add_argument('--path', type=str, default=r'')
+parser.add_argument('--pretrained', type=str, default='')
 parser.add_argument('--model_cls', type=str, default='face2face')
 parser.add_argument('--test_cls', type=str, default='faceshifter')
-parser.add_argument('--c', type=str, default='raw')
-parser.add_argument('--type', type=str, default='Davis2016-TL')
+parser.add_argument('--c', type=str, default='c23')
+parser.add_argument('--type', type=str, default='FF++')
 parser.add_argument('--local_rank', type=str, default='0')
 parser.add_argument('--hash_bits', type=int, default=PVT2Config.HASH_BITS)
 parser.add_argument('--test_type', type=str, default='normal')
-parser.add_argument('--train_h', type=bool, default=True)
+parser.add_argument('--train_h', type=bool, default=False)
 if __name__ == '__main__':
     args = parser.parse_args()
-    type_ = args.type
+    dataset_ = args.type
     path_ = args.path
     h_path = args.pretrained
     hash_bits = args.hash_bits

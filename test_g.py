@@ -6,7 +6,7 @@ from einops import rearrange
 from config import PVT2Config
 from dataset.BaseDataset import get_dataloader
 from dataset.DFD_Video import DFDVideoDataset
-from dataset.DFTL import DFTLDataset
+from dataset.DFSTL import DFSTLDataset
 from dataset.inpainting_dataset import InpaintingDataset
 from dataset.splicingtl import VSTLDataset
 from layer import helper
@@ -19,8 +19,8 @@ choices = {
     # (number of original videos, Dataset: read frames or video)
     'DFD': (363, DFDVideoDataset, '/src/c23/videos/'),
     'VSTL': (30, VSTLDataset, '/train/src/'),
-    'DFTL': (133, DFTLDataset, '/train/'),
-    'Davis2016-TL': (50, InpaintingDataset, '/train/src/'),
+    'DFTL': (133, DFSTLDataset, '/train/'),
+    'inpainting': (50, InpaintingDataset, '/train/src/'),
 }
 
 

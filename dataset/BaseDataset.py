@@ -51,7 +51,7 @@ class BaseDataset(Dataset):
         self.batch_size = kwargs.get('batch_size', PVT2Config.BATCH_SIZE)
         self.mode = kwargs.get('mode', PVT2Config.TRAIN)
         self.test_op = kwargs.get('test_op', -1)
-        self.type = kwargs.get('type', '')
+        self.data_type = kwargs.get('data_type', '')
         self.train_h = kwargs.get('train_h', False)
         self._load_labels()
 
@@ -104,7 +104,7 @@ class BaseDataset(Dataset):
             fake_data2 = read_data(video_data.fake_dir[idx], files, op=i)
             hashes = [src, fake_data, fake_data2]
             return video_data.label, torch.cat(hashes), src, fake_data, mask_data
-        elif self.type == 'files':
+        elif self.data_type == 1:
             src_files, fake_files, mask_files = [], [], []
             for f in files:
                 src_files.append(os.path.join(video_data.src_dir, f))
@@ -112,12 +112,10 @@ class BaseDataset(Dataset):
                 mask_files.append(os.path.join(video_data.mask_dir[idx], f))
             return video_data.label, src_files, fake_files, mask_files, ''
         else:
-            fake_files = []
-            for f in files:
-                fake_files.append(os.path.join(video_data.fake_dir[idx], f))
+            fake_file = os.path.join(video_data.fake_dir[idx], files[0])
             src = read_data(video_data.src_dir, files)
             fake = read_data(video_data.fake_dir[idx], files, op=self.test_op)
-            return video_data.label, fake_files, src, fake, mask_data
+            return video_data.label, fake_file, src, fake, mask_data
 
 
 def read_data(_dir, files, op=-1, mask=False):
@@ -194,8 +192,8 @@ def load_cache(dataloader, train_cache: TrainCache):
 
 
 def get_dataloader(set_path, Dataset, mode=PVT2Config.TRAIN, train_h=True,
-                   batch_size=PVT2Config.BATCH_SIZE, test_op=-1, shuffle=True, type=''):
+                   batch_size=PVT2Config.BATCH_SIZE, test_op=-1, shuffle=True, data_type=0):
     num_workers = 4 if mode == PVT2Config.TRAIN else 0
-    dataset = Dataset(set_path=set_path, mode=mode, test_op=test_op, train_h=train_h, type=type)
+    dataset = Dataset(set_path=set_path, mode=mode, test_op=test_op, train_h=train_h, data_type=data_type)
     dataloader = tud.DataLoader(dataset, num_workers=num_workers, batch_size=batch_size, shuffle=shuffle)
     return dataloader
