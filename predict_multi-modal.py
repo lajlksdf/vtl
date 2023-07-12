@@ -10,6 +10,7 @@ from torch import Tensor
 from config import PVT2Config
 from layer.helper import tensor_to_binary, compute_hamming_dist, file2tensor, torch_resize
 from layer.vit_hash import PVT2HashNet
+from util.metricUtil import robust_op, RobustnessTest, write_json
 
 # device = torch.device("cpu")
 hashmap = {}
@@ -55,8 +56,9 @@ def find_index(hashset: Tensor, label_):
     return res
 
 
-def predict(image_path_, label_, net_h):
-    x = file2tensor(image_path_)
+def predict(image_path_, label_, net_h, op):
+    image = robust_op(image_path_, op)
+    x = torch_resize(image)
     y = x.repeat(PVT2Config.NUM_FRAMES, 1, 1, 1).unsqueeze(0)
     h = net_h(y.to(device))
     return find_index(h, label_)
@@ -71,8 +73,11 @@ def predict_cv2(image, label_, net_h):
     return find_index(h, label_)
 
 
+y_pred = []
+
+
 # image_path like dir_path/label/x.jpg
-def test_read_image():
+def test_read_image(op):
     count, real = 0, 0
     for p in os.listdir(dir_path):
         label = p
@@ -83,10 +88,14 @@ def test_read_image():
         for f in images_:
             count += 1
             image_path = os.path.join(path_, f)
-            if predict(image_path, label, model):
+            if predict(image_path, label, model, op):
                 real += 1
+                y_pred.append(1)
+            else:
+                y_pred.append(0)
 
     print(f'real:{real}-count:{count}, ACC:{real / count}')
+    write_json(y_pred, f'{dir_path}-{op}.json')
 
 
 parser = argparse.ArgumentParser()
@@ -103,4 +112,5 @@ if __name__ == '__main__':
     device = torch.device(f"cuda:{args.local_rank}")
     load_map(hash_path)
     model = load_model(model_path, device)
-    test_read_image()
+    for i in range(-1, 5):
+        test_read_image(i)
