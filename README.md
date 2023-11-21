@@ -51,7 +51,6 @@ python test_h.py --local_rank=0 --path=../Celeb-DF --type=Celeb-DF --hash_bits=5
 | Video Splicing | https://drive.google.com/file/d/1-3mggFEiVRTPnR3PQ3yNHKsUyJ84jUkY/view?usp=share_link | Google drive |
 | Similar Scenes| https://drive.google.com/file/d/1-0VBLygXSrQrYOpQqmQY8q_qv5r0uOGo/view?usp=share_link |  Google drive |
 | Video Inpainting      | https://drive.google.com/file/d/1-35iQpD7RQTGGAFmJKSd3rptahnJuhmj/view?usp=share_link | Google drive. Extension of[DAVIS2016](https://davischallenge.org/) |
-| Dataset   | https://pan.baidu.com/s/1SI0xUqysXdUtwEJvaILQBQ?pwd=s7mz | BaiduNetDisk |
 
 ### DeepFake Dataset Samples
 
